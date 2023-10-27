@@ -54,6 +54,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
@@ -648,21 +649,19 @@ class OperatorStateBackendTest {
             assertThat(it.next()).isEqualTo(20);
             assertThat(it).isExhausted();
 
+            Map<Serializable, Serializable> broadcastState1Map = new LinkedHashMap<>();
             Iterator<Map.Entry<Serializable, Serializable>> bIt = broadcastState1.iterator();
-            assertThat(bIt).hasNext();
-            Map.Entry<Serializable, Serializable> entry = bIt.next();
-            assertThat(entry.getKey()).isEqualTo(1);
-            assertThat(entry.getValue()).isEqualTo(2);
-
-            assertThat(bIt).hasNext();
-            entry = bIt.next();
-            assertThat(entry.getKey()).isEqualTo(2);
-            assertThat(entry.getValue()).isEqualTo(5);
-            assertThat(bIt).isExhausted();
+            while (bIt.hasNext()) {
+                Map.Entry<Serializable, Serializable> entry = bIt.next();
+                broadcastState1Map.put(entry.getKey(), entry.getValue());
+            }
+            assertThat(broadcastState1Map.size()).isEqualTo(2);
+            assertThat(broadcastState1Map.get(1)).isEqualTo(2);
+            assertThat(broadcastState1Map.get(2)).isEqualTo(5);
 
             bIt = broadcastState2.iterator();
             assertThat(bIt).hasNext();
-            entry = bIt.next();
+            Map.Entry<Serializable, Serializable> entry = bIt.next();
             assertThat(entry.getKey()).isEqualTo(2);
             assertThat(entry.getValue()).isEqualTo(5);
             assertThat(bIt).isExhausted();
